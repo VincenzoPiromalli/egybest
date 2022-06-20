@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css"/>
+    </head>
+    <body>
+        <table id="example" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Poster</th>
+                    <th>Title</th>
+                    <th>Year</th>
+                    <th>IMDB</th>
+                    <th>Video</th>
+                </tr>
+            </thead>
+        </table>
+<script>
+$(document).ready(function () {
+    $("#example").DataTable({
+        ajax: {
+            url: "https://raw.githubusercontent.com/VincenzoPiromalli/egybest/main/data.json",
+            dataSrc: "",
+        },
+        order: [[0, "desc"]],
+        columns: [{ data: "id" }, { data: "poster_path" }, { data: "title" }, { data: "year" }, { data: "imdb_id" }, { data: "movie_id" }],
+        columnDefs: [
+            {
+                width: 95,
+                targets: 1,
+                render: function (data, type, row) {
+                    return '<img src="https://image.tmdb.org/t/p/w92' + data + '" width="92px" height="131px"  onerror="imgError(this);" />';
+                },
+            },
+            {
+                targets: 2,
+                render: function (data, type, row) {
+                    return "<b>" + data + "</b>";
+                },
+            },
+            {
+                targets: 5,
+                render: function (data, type, row) {
+                    return '<a class="btn btn-outline-primary btn-sm" href="embed.html#' + data + '" target="_blank">LINK</a>';
+                },
+            },
+        ],
+    });
+});
+function imgError(image) {
+    image.onerror = "";
+    image.src = "https://i.imgur.com/aUuJ6aj.png";
+    return true;
+}
+
+</script>
+    </body>
+</html>
