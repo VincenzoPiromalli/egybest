@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Player</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="never" />
+    <meta name="referrer" content="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://content.jwplatform.com/libraries/DkwOvSfA.js"></script>
+    <style>
+        html,
+        body,
+        #container {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #container {
+            position: absolute;
+            text-align: center;
+        }
+
+        video {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div style="position: relative; top: 50%; margin-top: -7px;" id="message">
+            <img src="https://i.imgur.com/Z33VsuB.png" alt="Play" style="cursor: pointer; margin-top: -64px;" id="start" />
+        </div>
+        <div id="player"></div>
+    </div>
+<script>
+$(document).ready(function () {
+    var lastRequest = 0;
+    var startTime = 0;
+    var destination = "https://proxy-1.movie-web.workers.dev/?destination=";
+    var url = "https://vidboom.cloud/m/app/";
+    var checkUrl;
+    var limitRequest = 10;
+    var resizer;
+
+    $("#start").click(function () {
+        $("#message").text("Creating systems and querying data...");
+        request(0);
+    });
+
+    function request(num) {
+        lastRequest = new Date().getTime() / 1000;
+        if (!checkUrl) return;
+
+        $.get(
+            checkUrl,
+            function (data) {
+                if (data.status == 401) {
+                    window.location.href = "https://fr0zen.sellix.io";
+                }
+
+                if (typeof data.sleep != "undefined") {
+                    if (isNaN(data.sleep)) data.sleep = 3000;
+
+                    if (++num < limitRequest)
+                        setTimeout(function () {
+                            request(num);
+                        }, data.sleep);
+                    else $("#message").text("Could not get video.");
+                } else if (typeof data.default !== "undefined") {
+                    setup = {
+                        title: data.title,
+                        primary: "html5",
+                        autostart: true,
+                        file: data.default,
+                        type: "hls",
+                        androidhls: true,
+                        hlshtml: true,
+                        controls: true,
+                        width: $(window).width(),
+                        height: $(window).height(),
+                    };
+                    jwplayer("player").setup(setup);
+                    window.onresize = function () {
+                        clearTimeout(resizer);
+                        resizer = setTimeout(resizeVideo, 100);
+                    };
+                    $("#message").hide();
+
+                    jwplayer().on("ready", function (event) {
+                        if (startTime != 0) jwplayer("player").seek(startTime);
+                    });
+
+                    jwplayer().on("seek", function (event) {
+                        startTime = event.offset;
+                    });
+                    jwplayer().on("time", function (event) {
+                        startTime = event.position;
+                    });
+
+                    jwplayer().on("error", function (event) {
+                        var currentTime = new Date().getTime() / 1000;
+                        if (currentTime - 5 < lastRequest) return;
+
+                        jwplayer().remove();
+                        $("#message").show().text("Loading...");
+                        request(0);
+                    });
+                } else {
+                    $("#message").text("An error has occurred: " + data.error);
+                }
+            },
+            "json"
+        ).fail(function () {
+            $("#message").text("An error has occurred, the server did not respond correctly");
+        });
+    }
+
+    function resizeVideo() {
+        jwplayer().resize($(window).width(), $(window).height());
+    }
+
+    function init() {
+        if (!window.location.hash) {
+            $("#message").text("Could not get video.");
+            return;
+        }
+
+        var file = window.location.hash.split("#")[1];
+
+        checkUrl = destination + url + file;
+    }
+
+    init();
+});
+</script>
+</body>
+</html>
+
